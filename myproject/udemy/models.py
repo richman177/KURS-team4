@@ -62,7 +62,7 @@ class Lesson(models.Model):
 
 
 class Assignment(models.Model):
-    assig_title = models.CharField(max_length=64)
+    title = models.CharField(max_length=64)
     description = models.TextField()
     due_date = models.DateField()
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
