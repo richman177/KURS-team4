@@ -23,10 +23,16 @@ class Student(UserProfile):
     student_image = models.ImageField(null=True, blank=True, upload_to='student_images/')
     student_bio = TextField()
 
+    def __str__(self):
+        return f'{self.first_name}, {self.last_name}'
+
 
 class Teacher(UserProfile):
     teacher_image = models.ImageField(null=True, blank=True, upload_to='teacher_images/')
     teacher_bio = TextField()
+
+    def __str__(self):
+        return f'{self.first_name}, {self.last_name}'
 
 
 class Category(models.Model):
@@ -53,6 +59,9 @@ class Course(models.Model):
     created_at = models.DateField(auto_now_add=True)
     updated_at = models.DateField(auto_now=True)
 
+    def __str__(self):
+        return self.course_name
+
 
 class Lesson(models.Model):
     lesson_title = models.CharField(max_length=64)
@@ -67,6 +76,9 @@ class Assignment(models.Model):
     due_date = models.DateField()
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return
 
 
 class Option(models.Model):
@@ -91,6 +103,9 @@ class Certificate(models.Model):
     course = models.OneToOneField(Course, on_delete=models.CASCADE)
     issued_at = models.DateField(auto_now=True)
     certificate = models.URLField()
+
+    def __str__(self):
+        return f'{self.student}, {self.course}'
 
 
 class Review(models.Model):
