@@ -1,7 +1,7 @@
 from .serializers import *
 from .models import *
 from rest_framework import viewsets, generics
-from .filters import CategoryFilter
+from .filters import CourseFilter,CategoryFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
@@ -24,14 +24,18 @@ class TeacherViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = CategoryFilter
 
 
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_class = CategoryFilter
-    search_fields = ['course_name']
+    filter_backends = [DjangoFilterBackend, SearchFilter,OrderingFilter]
+    filterset_class = CourseFilter
+    search_fields = ['course_name',]
+    ordering_fields = ['updated_at',]
+
 
 
 class LessonViewSet(viewsets.ModelViewSet):

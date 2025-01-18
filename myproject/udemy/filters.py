@@ -1,10 +1,19 @@
 from django_filters import FilterSet
-from .models import Course
+from .models import Course, Category
+
+
+class CourseFilter(FilterSet):
+    class Meta:
+        model = Course
+        fields = {
+            'price': ['gt', 'lt'],
+
+        }
 
 
 class CategoryFilter(FilterSet):
     class Meta:
-        model = Course
+        model = Category
         fields = {
-            'price': ['gt', 'lt']
+            'category_name': ['exact'],
         }
