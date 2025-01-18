@@ -23,6 +23,10 @@ class Student(UserProfile):
     student_image = models.ImageField(null=True, blank=True, upload_to='student_images/')
     student_bio = TextField()
 
+    class Meta:
+        verbose_name = "Students"
+        verbose_name_plural = "Students_Profile"
+
     def __str__(self):
         return f'{self.first_name}, {self.last_name}'
 
@@ -30,6 +34,10 @@ class Student(UserProfile):
 class Teacher(UserProfile):
     teacher_image = models.ImageField(null=True, blank=True, upload_to='teacher_images/')
     teacher_bio = TextField()
+
+    class Meta:
+        verbose_name = "Teacher"
+        verbose_name_plural = "Teachers_Profile"
 
     def __str__(self):
         return f'{self.first_name}, {self.last_name}'
