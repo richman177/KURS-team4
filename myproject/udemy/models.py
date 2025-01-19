@@ -5,15 +5,16 @@ from django.db.models import TextField
 from phonenumber_field.modelfields import PhoneNumberField
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+STATUS_CHOICES = (
+    ('admin', 'admin'),
+    ('student', 'student'),
+    ('teacher', 'teacher'),
+)
 
 class UserProfile(AbstractUser):
     phone_number = PhoneNumberField(null=True, blank=True)
-    STATUS_CHOICES = (
-        ('admin', 'admin'),
-        ('student', 'student'),
-        ('teacher', 'teacher'),
-    )
-    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default='student')
+
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES)
 
     def __str__(self):
         return f'{self.first_name}, {self.last_name}'
@@ -33,8 +34,8 @@ class Student(UserProfile):
 
 class Teacher(UserProfile):
     teacher_image = models.ImageField(null=True, blank=True, upload_to='teacher_images/')
-    teacher_bio = TextField()
-
+    teacher_bio = models.TextField()
+    teacher_education = models.CharField(max_length=150)
     class Meta:
         verbose_name = "Teacher"
         verbose_name_plural = "Teachers_Profile"
@@ -42,6 +43,15 @@ class Teacher(UserProfile):
     def __str__(self):
         return f'{self.first_name}, {self.last_name}'
 
+class TeacherRating(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)])
+    comment = models.TextField(null=True, blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.student}, {self.teacher}'
 
 class Category(models.Model):
     category_name = models.CharField(max_length=64)
@@ -62,9 +72,9 @@ class Course(models.Model):
     )
 
     level = models.CharField(max_length=16, choices=LEVEL_CHOICES, default='student')
-    created_by = models.ForeignKey(Teacher, on_delete=models.CASCADE)
-    created_at = models.DateField(auto_now_add=True)
-    updated_at = models.DateField(auto_now=True)
+    created_by = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     price = models.DecimalField(max_digits=12, decimal_places=2)
@@ -95,25 +105,27 @@ class Assignment(models.Model):
     def __str__(self):
         return f'{self.title}'
 
-
-class Option(models.Model):
-    option = models.IntegerField(choices=[(i, str(i)) for i in range(1, 5)])
-
+class Question(models.Model):
+    text = models.CharField(max_length=60)
+    option_1 = models.CharField(max_length=60)
+    option_2 = models.CharField(max_length=60)
+    option_3 = models.CharField(max_length=60)
+    option_4 = models.CharField(max_length=60)
+    correct_option = models.IntegerField(choices=[(i, str(i)) for i in range(1, 5)])
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='question')
     def __str__(self):
-        return f'{self.option}'
+        return f'{self.text}'
 
-class Questions(models.Model):
-    title = models.CharField(max_length=64)
-    option = models.ForeignKey(Option, on_delete=models.CASCADE)
+    def check_answer(self, answer_index):
+        return answer_index == self.correct_option
 
-    def __str__(self):
-        return self.title
+
 
 
 class Exam(models.Model):
     exam_title = models.CharField(max_length=64)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    questions = models.ForeignKey(Questions, on_delete=models.CASCADE)
+    questions = models.ForeignKey(Question, on_delete=models.CASCADE)
     passing_score = models.PositiveSmallIntegerField()
     duration = models.DurationField(default=timedelta(minutes=60))
 
@@ -141,10 +153,14 @@ class Review(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.student.username} '
+        return f'{self.student} '
 
 
 class TeacherReview(models.Model):
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
+
+
+    def __str__(self):
+        return f'{self.teacher}, {self.student}'

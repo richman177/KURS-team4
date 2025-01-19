@@ -21,41 +21,56 @@ class TeacherViewSet(viewsets.ModelViewSet):
     serializer_class = TeacherSerializer
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryListAPIView(generics.ListAPIView):
     queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+    serializer_class = CategoryListSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = CategoryFilter
 
 
-class CourseViewSet(viewsets.ModelViewSet):
+class CategoryDetailAPIView(generics.RetrieveAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategoryDetailSerializer
+
+
+
+class CourseListAPIView(generics.ListAPIView):
     queryset = Course.objects.all()
-    serializer_class = CourseSerializer
+    serializer_class = CourseListSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter,OrderingFilter]
     filterset_class = CourseFilter
     search_fields = ['course_name',]
     ordering_fields = ['updated_at',]
 
 
+class CourseDetailAPIView(generics.RetrieveAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseDetailSerializer
 
-class LessonViewSet(viewsets.ModelViewSet):
+
+
+
+class LessonListAPIView(generics.ListAPIView):
     queryset = Lesson.objects.all()
-    serializer_class = LessonSerializer
+    serializer_class = LessonListSerializer
 
 
-class AssignmentViewSet(viewsets.ModelViewSet):
+class LessonDetailAPIView(generics.RetrieveAPIView):
+    queryset = Lesson.objects.all()
+    serializer_class = LessonDetailSerializer
+
+class AssignmentListAPIView(generics.ListAPIView):
     queryset = Assignment.objects.all()
-    serializer_class = AssignmentSerializer
+    serializer_class = AssignmentListSerializer
+
+class AssignmentDetailAPIView(generics.RetrieveAPIView):
+    queryset = Assignment.objects.all()
+    serializer_class = AssignmentDetailSerializer
 
 
-class OptionViewSet(viewsets.ModelViewSet):
-    queryset = Option.objects.all()
-    serializer_class = OptionSerializer
-
-
-class QuestionsViewSet(viewsets.ModelViewSet):
-    queryset = Questions.objects.all()
-    serializer_class = QuestionsSerializer
+class QuestionViewSet(viewsets.ModelViewSet):
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
 
 
 class ExamViewSet(viewsets.ModelViewSet):
@@ -71,3 +86,11 @@ class CertificateViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+
+class TeacherReviewViewSet(viewsets.ModelViewSet):
+    queryset = TeacherReview.objects.all()
+    serializer_class = TeacherReviewSerializer
+
+class TeacherRatingViewSet(viewsets.ModelViewSet):
+    queryset = TeacherRating.objects.all()
+    serializer_class = TeacherRatingSerializer

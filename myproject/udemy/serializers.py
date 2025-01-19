@@ -21,43 +21,59 @@ class TeacherSerializer(serializers.ModelSerializer):
 
 
 
-class CategorySerializer(serializers.ModelSerializer):
+
+class CategoryListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ['id', 'category_name']
+
+class CategoryDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['category_name']
 
 
 
-class CourseSerializer(serializers.ModelSerializer):
+class CourseListSerializer(serializers.ModelSerializer):
+    category = CategoryDetailSerializer(many=True, read_only=True)
     class Meta:
         model = Course
-        fields = '__all__'
+        fields = [ 'id', 'course_name', 'category', 'level', 'price', 'created_by']
 
 
 
-class LessonSerializer(serializers.ModelSerializer):
+
+
+class LessonListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
-        fields = '__all__'
+        fields = ['id', 'lesson_title', 'video_url', 'course']
 
 
+class LessonDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lesson
+        fields = ['content', 'lesson_title', 'video_url', 'course']
 
-class AssignmentSerializer(serializers.ModelSerializer):
+
+class AssignmentListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assignment
-        fields = '__all__'
+        fields = ['id' ,'title', 'course' ]
 
 
-class OptionSerializer(serializers.ModelSerializer):
+class AssignmentDetailSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Option
-        fields = '__all__'
+        model = Assignment
+        fields = ['id' ,'title', 'course' ,'student', 'due_date' 'description' ]
 
 
 
-class QuestionsSerializer(serializers.ModelSerializer):
+
+
+class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Questions
+        model = Question
         fields = '__all__'
 
 
@@ -79,3 +95,22 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
+
+
+class TeacherReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TeacherReview
+        fields = '__all__'
+
+
+class TeacherRatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TeacherRating
+        fields = '__all__'
+
+class CourseDetailSerializer(serializers.ModelSerializer):
+    category = CategoryDetailSerializer()
+    class Meta:
+        model = Course
+        fields = [ 'id', 'course_name', 'category', 'level','description', 'price', 'created_by',
+                   'created_at', 'updated_at']
