@@ -1,3 +1,4 @@
+import rating
 from django.db import models
 from datetime import timedelta
 from django.contrib.auth.models import AbstractUser
@@ -11,18 +12,21 @@ STATUS_CHOICES = (
     ('teacher', 'teacher'),
 )
 
+
 class UserProfile(AbstractUser):
     phone_number = PhoneNumberField(null=True, blank=True)
-
     status = models.CharField(max_length=16, choices=STATUS_CHOICES)
 
     def __str__(self):
         return f'{self.first_name}, {self.last_name}'
 
 
+
 class Student(UserProfile):
     student_image = models.ImageField(null=True, blank=True, upload_to='student_images/')
     student_bio = TextField()
+    student_age = models.PositiveSmallIntegerField(validators=[MinValueValidator(10), MaxValueValidator(65)], null=True, blank=True)
+
 
     class Meta:
         verbose_name = "Students"
@@ -36,6 +40,9 @@ class Teacher(UserProfile):
     teacher_image = models.ImageField(null=True, blank=True, upload_to='teacher_images/')
     teacher_bio = models.TextField()
     teacher_education = models.CharField(max_length=150)
+    teacher_age = models.PositiveSmallIntegerField(validators=[MinValueValidator(18), MaxValueValidator(65)], null=True, blank=True)
+
+
     class Meta:
         verbose_name = "Teacher"
         verbose_name_plural = "Teachers_Profile"
@@ -43,15 +50,41 @@ class Teacher(UserProfile):
     def __str__(self):
         return f'{self.first_name}, {self.last_name}'
 
+    def get_avg_teacher_rating(self):
+        teacher_rating = self.rating.all()
+        if teacher_rating.exists():
+            return round(sum([i.rating for i in teacher_rating if i.rating]) / teacher_rating.count(), 1)
+        return 0
+
+    def get_count_rating(self):
+        ratings = self.reviews.all()
+        if ratings.exists():
+            if ratings.count() > 3:
+                return '3+'
+            return ratings.count()
+        return 0
+
+    def get_good_grade(self):
+        ratings = self.reviews.all()
+        if ratings.exists():
+            total_people = 0
+            for i in ratings:
+                if i.stars > 3:
+                    total_people += 1
+            return f'{(total_people * 100) / ratings.count()} %'
+        return '0 %'
+
+
 class TeacherRating(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='rating')
     rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)])
     comment = models.TextField(null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.student}, {self.teacher}'
+
 
 class Category(models.Model):
     category_name = models.CharField(max_length=64)
@@ -79,9 +112,32 @@ class Course(models.Model):
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     price = models.DecimalField(max_digits=12, decimal_places=2)
 
-
     def __str__(self):
         return self.course_name
+
+    def get_avg_rating(self):
+        ratings = self.reviews.all()
+        if ratings.exists():
+            return round(sum([i.rating for i in ratings if i.rating]) / ratings.count(), 1)
+        return 0
+
+    def get_count_rating(self):
+        ratings = self.reviews.all()
+        if ratings.exists():
+            if ratings.count() > 3:
+                return '3+'
+            return ratings.count()
+        return 0
+
+    def get_good_grade(self):
+        ratings = self.reviews.all()
+        if ratings.exists():
+            total_people = 0
+            for i in ratings:
+                if i.rating > 3:
+                    total_people += 1
+            return f'{round((total_people * 100) / ratings.count(), 1)}%'
+        return '0%'
 
 
 class Lesson(models.Model):
@@ -105,6 +161,7 @@ class Assignment(models.Model):
     def __str__(self):
         return f'{self.title}'
 
+
 class Question(models.Model):
     text = models.CharField(max_length=60)
     option_1 = models.CharField(max_length=60)
@@ -113,12 +170,12 @@ class Question(models.Model):
     option_4 = models.CharField(max_length=60)
     correct_option = models.IntegerField(choices=[(i, str(i)) for i in range(1, 5)])
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='question')
+
     def __str__(self):
         return f'{self.text}'
 
     def check_answer(self, answer_index):
         return answer_index == self.correct_option
-
 
 
 
@@ -133,6 +190,15 @@ class Exam(models.Model):
         return f'{self.exam_title}, {self.course}'
 
 
+class Option(models.Model):
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
+    stars = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)], null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.teacher}, {self.exam}'
+
 class Certificate(models.Model):
     student = models.OneToOneField(Student, on_delete=models.CASCADE)
     course = models.OneToOneField(Course, on_delete=models.CASCADE)
@@ -144,23 +210,21 @@ class Certificate(models.Model):
         return f'{self.student}, {self.course}'
 
 
-class Review(models.Model):
+class CourseReview(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)])
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='reviews')
+    rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)], null=True, blank=True)
     comment = models.TextField(null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.student} '
+        return f'{self.student}'
 
 
 class TeacherReview(models.Model):
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='reviews')
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
-
 
     def __str__(self):
         return f'{self.teacher}, {self.student}'

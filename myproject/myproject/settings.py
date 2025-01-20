@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'udemy',
     "phonenumber_field",
     'django_filters',
+    'rest_framework_swagger',
+    'drf_yasg'
 
 ]
 
