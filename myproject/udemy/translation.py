@@ -1,4 +1,4 @@
-from .models import Category,Course, Lesson, Exam
+from .models import Category, Course, Lesson, Exam, Teacher, Student
 from modeltranslation.translator import TranslationOptions,register
 
 
@@ -20,3 +20,11 @@ class LessonTranslationOptions(TranslationOptions):
 @register(Exam)
 class ExamTranslationOptions(TranslationOptions):
     fields = ('exam_title',)
+
+@register(Teacher)
+class TeacherTranslationOptions(TranslationOptions):
+    fields = ('teacher_bio',)
+
+@register(Student)
+class StudentTranslationOptions(TranslationOptions):
+    fields = ('student_bio',)

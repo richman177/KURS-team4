@@ -7,7 +7,6 @@ class CourseFilter(FilterSet):
         model = Course
         fields = {
             'price': ['gt', 'lt'],
-
         }
 
 
