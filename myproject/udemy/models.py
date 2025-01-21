@@ -199,6 +199,7 @@ class Option(models.Model):
     def __str__(self):
         return f'{self.teacher}, {self.exam}'
 
+
 class Certificate(models.Model):
     student = models.OneToOneField(Student, on_delete=models.CASCADE)
     course = models.OneToOneField(Course, on_delete=models.CASCADE)
