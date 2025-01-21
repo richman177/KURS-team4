@@ -228,3 +228,17 @@ class TeacherReview(models.Model):
 
     def __str__(self):
         return f'{self.teacher}, {self.student}'
+
+
+class Chat(models.Model):
+    person = models.ManyToManyField(UserProfile,)
+    created_date = models.DateField(auto_now_add=True)
+
+
+class Massage(models.Model):
+    chat = models.ForeignKey(Chat,on_delete=models.CASCADE)
+    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    text = models.TextField(null=True, blank=True)
+    image = models.ImageField(upload_to='images', null=True, blank=True)
+    video = models.FileField(upload_to='videos', null=True, blank=True  )
+    created_date = models.DateField(auto_now_add=True)
