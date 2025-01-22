@@ -1,6 +1,42 @@
 from rest_framework import serializers
 from .models import *
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ('username', 'email', 'password', 'first_name', 'last_name',
+                  'age', 'phone_number', )
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = UserProfile.objects.create_user(**validated_data)
+        return user
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+
+    def validate(self, data):
+        user = authenticate(**data)
+        if user and user.is_active:
+            return user
+        raise serializers.ValidationError("Неверные учутные данные")
+
+
+    def to_representation(self, instance):
+        refresh = RefreshToken.for_user(instance)
+        return {
+            'user':{
+                'username': instance.username,
+                'email': instance.email,
+            },
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+        }
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,6 +49,10 @@ class CourseSimpleSerializer(serializers.ModelSerializer):
         model = Course
         fields = ['course_name']
 
+class StudentSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['last_name', 'first_name']
 
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,14 +66,14 @@ class CategoryListSerializer(serializers.ModelSerializer):
         fields = ['id', 'category_name']
 
 
-class CategoryDetailSerializer(serializers.ModelSerializer):
+class CategorySimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['category_name']
 
 
 class CourseListSerializer(serializers.ModelSerializer):
-    category = CategoryDetailSerializer(many=True, read_only=True)
+    category = CategorySimpleSerializer()
     avg_rating = serializers.SerializerMethodField()
     good_grade = serializers.SerializerMethodField()
     count_rating = serializers.SerializerMethodField()
@@ -61,7 +101,7 @@ class LessonListSerializer(serializers.ModelSerializer):
 class LessonDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
-        fields = ['content', 'lesson_name', 'video_url', 'course', 'duration']
+        fields = ['lesson_name', 'video_url', 'content', 'course', 'duration']
 
 
 class LessonSerializer(serializers.ModelSerializer):
@@ -93,6 +133,12 @@ class QuestionSerializer(serializers.ModelSerializer):
         model = Question
         fields = ['text', 'option_1', 'option_2', 'option_3', 'option_4',
                   'correct_option', 'course']
+
+
+class ExamSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Exam
+        fields = ['exam_title']
 
 
 
@@ -135,17 +181,29 @@ class CourseSerializer(serializers.ModelSerializer):
         model = Course
         fields = '__all__'
 
+class TeacherSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Teacher
+        fields = ['last_name', 'first_name']
+
 
 class TeacherReviewSerializer(serializers.ModelSerializer):
+    student = StudentSimpleSerializer()
+    teacher = TeacherSimpleSerializer()
+    exam = ExamSimpleSerializer()
     class Meta:
         model = TeacherReview
-        fields = '__all__'
+        fields = ['teacher','student', 'exam', 'stars']
 
 
 class TeacherRatingSerializer(serializers.ModelSerializer):
+    created_date = serializers.DateTimeField(format('%d-%m-%Y'))
+    student = StudentSimpleSerializer()
+    teacher = TeacherSimpleSerializer()
     class Meta:
         model = TeacherRating
-        fields = '__all__'
+        fields = ['student', 'teacher', 'rating', 'comment', 'created_date']
+
 
 
 class TeacherSerializer(serializers.ModelSerializer):
@@ -168,13 +226,25 @@ class TeacherSerializer(serializers.ModelSerializer):
 
 
 class CourseDetailSerializer(serializers.ModelSerializer):
-    category = CategoryDetailSerializer()
+    category = CategorySimpleSerializer()
     avg_rating = serializers.SerializerMethodField()
+    created_at = serializers.DateTimeField(format('%d-%m-%Y'))
+    updated_at = serializers.DateTimeField(format('%d-%m-%Y'))
+    lesson_course = LessonDetailSerializer(read_only=True, many=True)
 
     class Meta:
         model = Course
         fields = ['course_name', 'category', 'level', 'description', 'price', 'created_by',
-                  'created_at', 'updated_at', 'avg_rating']
+                  'created_at', 'updated_at', 'avg_rating','lesson_course']
 
     def get_avg_rating(self, obj):
         return obj.get_avg_rating()
+
+
+class CategoryDetailSerializer(serializers.ModelSerializer):
+    category_course = CourseDetailSerializer(many=True, read_only=True)
+
+
+    class Meta:
+        model = Category
+        fields = ['category_name', 'category_course']
