@@ -5,7 +5,7 @@ from modeltranslation.admin import TranslationAdmin
 
 
 
-@admin.register(Lesson,Exam, Course)
+@admin.register(Lesson,Exam, Course,Teacher,Student)
 class AllAdmin(TranslationAdmin):
     class Media:
         js = (
@@ -32,10 +32,10 @@ class ProductAdmin(TranslationAdmin):
 
 
 admin.site.register(UserProfile)
-admin.site.register(Student)
-admin.site.register(Teacher)
 admin.site.register(Option)
 admin.site.register(Question)
 admin.site.register(Assignment)
 admin.site.register(Certificate)
 admin.site.register(CourseReview)
+admin.site.register(TeacherReview)
+admin.site.register(TeacherRating)

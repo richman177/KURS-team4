@@ -1,4 +1,4 @@
-import rating
+
 from django.db import models
 from datetime import timedelta
 from django.contrib.auth.models import AbstractUser
@@ -16,6 +16,7 @@ STATUS_CHOICES = (
 class UserProfile(AbstractUser):
     phone_number = PhoneNumberField(null=True, blank=True)
     status = models.CharField(max_length=16, choices=STATUS_CHOICES)
+    age = models.PositiveSmallIntegerField(validators=[MinValueValidator(18), MaxValueValidator(65)], null=True, blank=True)
 
     def __str__(self):
         return f'{self.first_name}, {self.last_name}'
@@ -25,7 +26,6 @@ class UserProfile(AbstractUser):
 class Student(UserProfile):
     student_image = models.ImageField(null=True, blank=True, upload_to='student_images/')
     student_bio = TextField()
-    student_age = models.PositiveSmallIntegerField(validators=[MinValueValidator(10), MaxValueValidator(65)], null=True, blank=True)
 
 
     class Meta:
@@ -40,7 +40,6 @@ class Teacher(UserProfile):
     teacher_image = models.ImageField(null=True, blank=True, upload_to='teacher_images/')
     teacher_bio = models.TextField()
     teacher_education = models.CharField(max_length=150)
-    teacher_age = models.PositiveSmallIntegerField(validators=[MinValueValidator(18), MaxValueValidator(65)], null=True, blank=True)
 
 
     class Meta:
@@ -96,7 +95,7 @@ class Category(models.Model):
 class Course(models.Model):
     course_name = models.CharField(max_length=64)
     description = models.TextField()
-    category = models.ManyToManyField(Category)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE,related_name='category_course')
     LEVEL_CHOICES = (
 
         ('easy', 'easy'),
@@ -144,7 +143,7 @@ class Lesson(models.Model):
     lesson_name = models.CharField(max_length=64)
     video_url = models.FileField(null=True, blank=True)
     content = models.TextField()
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='lesson_course')
     duration = models.DurationField(default=timedelta(minutes=60))
 
     def __str__(self):
@@ -199,6 +198,7 @@ class Option(models.Model):
     def __str__(self):
         return f'{self.teacher}, {self.exam}'
 
+
 class Certificate(models.Model):
     student = models.OneToOneField(Student, on_delete=models.CASCADE)
     course = models.OneToOneField(Course, on_delete=models.CASCADE)
@@ -225,6 +225,21 @@ class TeacherReview(models.Model):
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='reviews')
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
+    stars = models.IntegerField(choices=[(i, str(i)) for i in range(2, 6)], null=True, blank=True)
 
     def __str__(self):
         return f'{self.teacher}, {self.student}'
+
+
+class Chat(models.Model):
+    person = models.ManyToManyField(UserProfile,)
+    created_date = models.DateField(auto_now_add=True)
+
+
+class Massage(models.Model):
+    chat = models.ForeignKey(Chat,on_delete=models.CASCADE)
+    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    text = models.TextField(null=True, blank=True)
+    image = models.ImageField(upload_to='images', null=True, blank=True)
+    video = models.FileField(upload_to='videos', null=True, blank=True  )
+    created_date = models.DateField(auto_now_add=True)
