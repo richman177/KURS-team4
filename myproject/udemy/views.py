@@ -38,7 +38,6 @@ class CategoryDetailAPIView(generics.RetrieveAPIView):
     serializer_class = CategoryDetailSerializer
 
 
-
 class CourseListAPIView(generics.ListAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseListSerializer
@@ -62,7 +61,6 @@ class CourseEDITAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [CheckCreateCourse]
-
 
 
 class LessonListAPIView(generics.ListAPIView):
@@ -95,17 +93,16 @@ class AssignmentDetailAPIView(generics.RetrieveAPIView):
     queryset = Assignment.objects.all()
     serializer_class = AssignmentDetailSerializer
 
+
 class AssignmentCreateAPIView(generics.CreateAPIView):
     queryset = Assignment.objects.all()
     serializer_class = AssignmentSerializer
-
 
 
 class AssignmentEDITAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset =  Assignment.objects.all()
     serializer_class =  AssignmentSerializer
     permission_classes = [CheckCreateCourse]
-
 
 
 class QuestionViewSet(viewsets.ModelViewSet):
@@ -144,6 +141,7 @@ class OptionViewSet(viewsets.ModelViewSet):
     queryset = Option.objects.all()
     serializer_class = OptionSerializer
 
+
 class CertificateListAPIView(generics.ListAPIView):
     queryset = Certificate.objects.all()
     serializer_class = CertificateListSerializer
@@ -153,6 +151,7 @@ class CertificateListAPIView(generics.ListAPIView):
 class CertificateDetailAPIView(generics.RetrieveAPIView):
     queryset = Certificate.objects.all()
     serializer_class = CertificateDetailSerializer
+
 
 class CertificateCreateAPIView(generics.CreateAPIView):
     queryset = Certificate.objects.all()
@@ -165,13 +164,16 @@ class CertificateEDITAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CertificateSerializer
     permission_classes = [CreateCertificate]
 
+
 class CourseReviewViewSet(viewsets.ModelViewSet):
     queryset = CourseReview.objects.all()
     serializer_class = CourseReviewSerializer
 
+
 class TeacherReviewViewSet(viewsets.ModelViewSet):
     queryset = TeacherReview.objects.all()
     serializer_class = TeacherReviewSerializer
+
 
 class TeacherRatingViewSet(viewsets.ModelViewSet):
     queryset = TeacherRating.objects.all()
